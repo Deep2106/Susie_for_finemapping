@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# === SETTINGS ===
+total_genes=16915
+batch_size=900
+r_script="run_susie_batch.R"
+log_dir="logs"
+mkdir -p "$log_dir"
+
+# === BATCH SUBMISSION LOOP ===
+for ((start=1; start<=total_genes; start+=batch_size)); do
+  end=$((start + batch_size - 1))
+  if [ "$end" -gt "$total_genes" ]; then end=$total_genes; fi
+
+  echo "Submitting SuSiE job for gene range: ${start}-${end}"
+
+  sbatch <<EOF
+#!/bin/bash
+#SBATCH -N 1
+#SBATCH -p compute
+#SBATCH -J FM_${start}_${end}
+#SBATCH --mem=15G
+#SBATCH -c 2
+#SBATCH -t 96:00:00
+#SBATCH -o "${log_dir}/SuSiE_${start}_${end}_%j.out"
+#SBATCH -e "${log_dir}/SuSiE_${start}_${end}_%j.err"
+
+export OMP_NUM_THREADS=2
+export OPENBLAS_NUM_THREADS=2
+export MKL_NUM_THREADS=2
+export NUMEXPR_NUM_THREADS=2
+export VECLIB_MAXIMUM_THREADS=2
+export R_BLAS_USE_FLOCK=TRUE
+
+cd /home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/EQTL/TMM_log2 ;
+
+echo "Starting SuSiE batch: genes ${start} to ${end}"
+Rscript "$r_script" "$start" "$end"
+echo "Finished SuSiE batch: genes ${start} to ${end}"
+EOF
+
+done
+
