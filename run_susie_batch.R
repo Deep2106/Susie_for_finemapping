@@ -1,11 +1,52 @@
-library(dplyr)
-library(data.table)
-library(susieR)
-library(seqminer)
-library(caret)
-library(MASS)
-library(Matrix)
-library(filelock)  # For safe file logging
+# load required packages and install if not already installed
+# dplyr
+if (!require("dplyr")) {
+  install.packages("dplyr", repos = "https://cloud.r-project.org")
+  library(dplyr)
+}
+
+# data.table
+if (!require("data.table")) {
+  install.packages("data.table", repos = "https://cloud.r-project.org")
+  library(data.table)
+}
+
+# susieR
+if (!require("susieR")) {
+  install.packages("susieR", repos = "https://cloud.r-project.org")
+  library(susieR)
+}
+
+# seqminer
+if (!require("seqminer")) {
+  install.packages("seqminer", repos = "https://cloud.r-project.org")
+  library(seqminer)
+}
+
+# caret
+if (!require("caret")) {
+  install.packages("caret", repos = "https://cloud.r-project.org")
+  library(caret)
+}
+
+# MASS
+if (!require("MASS")) {
+  install.packages("MASS", repos = "https://cloud.r-project.org")
+  library(MASS)
+}
+
+# Matrix
+if (!require("Matrix")) {
+  install.packages("Matrix", repos = "https://cloud.r-project.org")
+  library(Matrix)
+}
+
+# filelock
+if (!require("filelock")) {
+  install.packages("filelock", repos = "https://cloud.r-project.org")
+  library(filelock)
+}
+
 
 source("process_geno.R")  # Ensure this file is available
 
@@ -15,15 +56,15 @@ start_index <- as.integer(args[1])
 end_index <- as.integer(args[2])
 if (is.na(start_index) | is.na(end_index)) stop("Start or end index not provided.")
 
-sample_size <- 433
+sample_size <- 433 ### change as per your sample size if not known use large values representing population eg. 1000,5000,100000 or remove completely for susie_rss function 
 
-# File paths
-vcf_dir <- "/home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/GENOTYPE_DATA/CHROMOSOMES"
-cov_file <- "/home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/COVARIATES/AUTOSOMES_TMM_LOG2/CovariatesTCDUU.txt"
-z_dir <- "/home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/EQTL/TMM_log2/Zscore"
-ld_dir <- "/home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/EQTL/TMM_log2/LD"
-pip_dir <- "/home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/EQTL/TMM_log2/pip_results"
-credible_set_dir <- "/home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/EQTL/TMM_log2/Zscorecredible_sets"
+# File paths change as per your file structure
+vcf_dir <- "GENOTYPE_DATA/CHROMOSOMES"
+cov_file <- "CovariatesTCDUU.txt"
+z_dir <- "TMM_log2/Zscore"
+ld_dir <- "TMM_log2/LD"
+pip_dir <- "TMM_log2/pip_results"
+credible_set_dir <- "TMM_log2/Zscorecredible_sets"
 error_log <- "logs/error_log_single.txt"
 summary_file <- "logs/gene_runtime_summary_single.txt"
 
@@ -41,9 +82,8 @@ safe_write_log <- function(msg, log_file) {
   unlock(lock_obj)
 }
 
-# Load gene info
-gene_info <- read.table("/home/shared/Deepak/EQTL/SNPDATA_COVID19_LOCAL_UU/GENE_EXPRESSION/gene_coordinates_ordered_17k_autosomes.txt", 
-                        sep = "\t", header = TRUE, check.names = FALSE)
+# Load gene info file 
+gene_info <- read.table("GENE_EXPRESSION/gene_coordinates_ordered_17k_autosomes.txt",sep = "\t", header = TRUE, check.names = FALSE)
 colnames(gene_info) <- c("gene", "chr", "tss", "end")
 gene_info <- gene_info %>% dplyr::select(chr, tss, gene)
 
@@ -64,7 +104,7 @@ for (i in start_index:end_index) {
     z_file <- file.path(z_dir, paste0(gene, ".fminput.z"))
     if (!file.exists(z_file)) stop("Missing Z-score file")
     
-    start <- max(tss - 1000000, 0)
+    start <- max(tss - 1000000, 0) ## make sure the starting position should not be negative
     end <- tss + 1000000
     genotype_mat <- extract_genotypes(chr, start, end, vcf_dir)
     if (is.null(genotype_mat) || ncol(genotype_mat) == 0) stop("Genotype extraction failed")
@@ -115,7 +155,9 @@ for (i in start_index:end_index) {
     susie_res <- susie_rss(z_data$zscore[match(common_snps, z_data$ids)], R = LD_mat, refine = FALSE, n = sample_size)
     
     z_data$PIP <- susie_res$pip[match(z_data$ids, names(susie_res$pip))]
+    # write pip file
     fwrite(z_data, file = file.path(pip_dir, paste0(gene, "_pip.txt")), sep = "\t")
+    # save susie object
     saveRDS(susie_res,file =file.path(credible_set_dir, paste0(gene, "_PIP.RDS")))    
     cs <- susie_res$sets$cs
     if (!is.null(cs)) {
