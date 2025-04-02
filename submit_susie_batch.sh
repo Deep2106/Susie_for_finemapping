@@ -17,10 +17,10 @@ for ((start=1; start<=total_genes; start+=batch_size)); do
   sbatch <<EOF
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -p compute
-#SBATCH -J FM_${start}_${end}
+#SBATCH -p compute ## change name as per your HPC queue system
+#SBATCH -J Prc_${start}_${end}
 #SBATCH --mem=12G
-#SBATCH -c 2
+#SBATCH -c 2 ## change as per your HPC resources.
 #SBATCH -t 96:00:00
 #SBATCH -o "${log_dir}/SuSiE_${start}_${end}_%j.out"
 #SBATCH -e "${log_dir}/SuSiE_${start}_${end}_%j.err"
