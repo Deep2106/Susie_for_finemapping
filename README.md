@@ -1,6 +1,6 @@
 # 🔬 Susie for Finemapping with SLURM Automation
 
-Welcome to **Susie_for_finemapping** — a powerful and automated solution for batch-wise fine-mapping using SuSiE, built to work seamlessly with SLURM for high-performance computing environments.
+Welcome to **Susie_for_finemapping** - a powerful and automated solution for batch-wise fine-mapping using SuSiE, built to work seamlessly with SLURM for high-performance computing environments.
 
 ---
 
@@ -12,7 +12,7 @@ This script dynamically generates SLURM job scripts to **process genes in batche
 
 # 🔬 Susie for Finemapping with SLURM Automation
 
-Welcome to **Susie_for_finemapping** — a powerful and automated solution for batch-wise fine-mapping using SuSiE, built to work seamlessly with SLURM for high-performance computing environments.
+Welcome to **Susie_for_finemapping** - a powerful and automated solution for batch-wise fine-mapping using SuSiE, built to work seamlessly with SLURM for high-performance computing environments.
 
 ---
 
